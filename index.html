@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Turbo Mango Exhibition Database Dashboard</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #5b6672;
+      --line: #d9e0e8;
+      --panel: #ffffff;
+      --soft: #f5f7fa;
+      --blue: #1b6ca8;
+      --teal: #16837a;
+      --green: #4b8b3b;
+      --gold: #c77913;
+      --red: #b94a48;
+      --focus: #0b5fff;
+      --shadow: 0 10px 24px rgba(23, 32, 42, .08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #eef2f6;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .shell {
+      width: min(1480px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      padding: 18px 0 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 52px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      max-width: 860px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .stamp {
+      justify-self: end;
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 6px 0 18px;
+    }
+
+    .kpi, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi {
+      padding: 16px;
+      min-height: 104px;
+      display: grid;
+      align-content: space-between;
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .kpi .value {
+      font-size: 34px;
+      font-weight: 760;
+      line-height: 1;
+    }
+
+    .kpi .hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .panel {
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .panel-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      margin: -4px 0 14px;
+    }
+
+    .bars {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 260px) 1fr 42px;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .bar-label {
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .bar-track {
+      height: 16px;
+      border-radius: 999px;
+      background: #e7edf3;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .bar-row:nth-child(2n) .bar-fill { background: var(--teal); }
+    .bar-row:nth-child(3n) .bar-fill { background: var(--green); }
+    .bar-value {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .donut {
+      width: 190px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: conic-gradient(var(--blue) 0 var(--europe), var(--teal) var(--europe) var(--usa), var(--gold) var(--usa) 100%);
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+    }
+
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 38px;
+      background: var(--panel);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+
+    .legend {
+      display: grid;
+      gap: 9px;
+      font-size: 14px;
+    }
+
+    .legend-item {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--blue);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 10px;
+      align-items: end;
+      margin: 0 0 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: .035em;
+    }
+
+    select, input {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    select:focus, input:focus, button:focus {
+      outline: 3px solid rgba(11, 95, 255, .22);
+      border-color: var(--focus);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid #b8c6d5;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 12px;
+      font-weight: 680;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .table-wrap {
+      max-height: 650px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+      min-width: 1280px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.35;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f8fafc;
+      color: #364251;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .035em;
+      box-shadow: 0 1px 0 var(--line);
+    }
+
+    tr:hover td { background: #fbfdff; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e9f2f9;
+      color: #165a89;
+      font-size: 12px;
+      font-weight: 680;
+      white-space: nowrap;
+    }
+
+    .pill.medium { background: #fff3dd; color: #8a520b; }
+    .pill.high { background: #e6f3e7; color: #346b2a; }
+
+    .micro {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      padding: 26px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .candidate-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .candidate {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .candidate strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    @media (max-width: 1100px) {
+      header, .grid, .split {
+        grid-template-columns: 1fr;
+      }
+      .stamp {
+        justify-self: start;
+        text-align: left;
+      }
+      .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100vw - 20px, 1480px);
+        padding-top: 12px;
+      }
+      .kpis, .controls {
+        grid-template-columns: 1fr;
+      }
+      .bar-row {
+        grid-template-columns: 1fr;
+      }
+      .bar-value {
+        text-align: left;
+      }
+      .panel {
+        padding: 12px;
+      }
+      table {
+        min-width: 1120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>Turbo Mango Exhibition Database</h1>
+        <p class="subtitle">Interactive view of the 2026-2027 verified exhibition database across energy, construction, industrial automation, life sciences and medtech. The table is designed for quick filtering before outreach or travel planning.</p>
+      </div>
+      <div class="stamp">
+        <span>Dataset: V2 internet-wide</span>
+        <span>Last checked: 2026-06-15</span>
+        <span>Participant URLs: 56/56 HTTP 200</span>
+      </div>
+    </header>
+
+    <section class="kpis" aria-label="Dataset summary">
+      <div class="kpi"><div class="label">Verified exhibitions</div><div class="value">56</div><div class="hint">Strict 4+ day rows</div></div>
+      <div class="kpi"><div class="label">Industries</div><div class="value">5</div><div class="hint">Turbo Mango categories 1-5</div></div>
+      <div class="kpi"><div class="label">Countries</div><div class="value">14</div><div class="hint">Europe, USA, Middle East</div></div>
+      <div class="kpi"><div class="label">Candidate backlog</div><div class="value">9</div><div class="hint">Useful but not verified</div></div>
+      <div class="kpi"><div class="label">URL check</div><div class="value">56/56</div><div class="hint">Participant links open</div></div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Coverage by industry</h2>
+        <p class="panel-note">Construction and industrial events are easiest to source at 4+ days; life sciences and medtech are stricter because many public directories publish closer to the event.</p>
+        <div id="industryBars" class="bars"></div>
+      </div>
+      <div class="panel">
+        <h2>Region split</h2>
+        <div class="split">
+          <div id="regionDonut" class="donut" role="img" aria-label="Region distribution donut"></div>
+          <div id="regionLegend" class="legend"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Top countries</h2>
+        <div id="countryBars" class="bars"></div>
+      </div>
+      <div class="panel">
+        <h2>Confidence mix</h2>
+        <p class="panel-note">Medium confidence means the official directory surface is live, but the event edition may continue updating before the show.</p>
+        <div id="confidenceBars" class="bars"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Verified exhibitions</h2>
+      <div class="controls">
+        <label>Industry<select id="industryFilter"><option value="">All industries</option></select></label>
+        <label>Region<select id="regionFilter"><option value="">All regions</option></select></label>
+        <label>Confidence<select id="confidenceFilter"><option value="">All confidence</option></select></label>
+        <label>Search<input id="searchFilter" type="search" placeholder="Event, city, country, venue"></label>
+        <div class="actions">
+          <button id="resetBtn" type="button">Reset</button>
+          <button id="exportBtn" class="primary" type="button">Export CSV</button>
+        </div>
+      </div>
+      <p id="tableCount" class="panel-note"></p>
+      <div class="table-wrap" tabindex="0" aria-label="Scrollable verified exhibitions table">
+        <table>
+          <thead>
+            <tr>
+              <th>Industry</th>
+              <th>Event</th>
+              <th>Dates</th>
+              <th>Geo</th>
+              <th>Venue</th>
+              <th>Duration</th>
+              <th>Confidence</th>
+              <th>Links</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:14px">
+      <h2>Candidate pipeline</h2>
+      <p class="panel-note">These events are promising but were not put into Verified because the current public exhibitor list is missing, pending, or not official enough.</p>
+      <div id="candidateList" class="candidate-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const DATA = {"rows": [{"industry": "Energy & Renewables", "event_name": "IAA TRANSPORTATION", "dates": "Sept. 15 - 20, 2026", "duration_days": "6", "city": "Hannover", "country": "Germany", "region": "Europe", "venue": "Deutsche Messe Hannover", "official_website": "http://www.iaa-transportation.com/en", "participants_url": "https://www.iaa-transportation.com/en/visitors/iaa-transportation/exhibitor-directory", "discovery_source_url": "https://www.eventseye.com/fairs/f-iaa-transportation-30055-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Energy & Renewables; 6 days; Europe. International Transportation Trade Show & Congress. Autonomous driving, hydrogen strategies and much more...", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "INTERSOLAR EUROPE", "dates": "June 22 - 25, 2026", "duration_days": "4", "city": "Munich", "country": "Germany", "region": "Europe", "venue": "Fairground Messe München", "official_website": "http://www.intersolar.de", "participants_url": "https://www.intersolar.de/exhibitorlist", "discovery_source_url": "https://www.eventseye.com/fairs/f-intersolar-europe-8955-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Energy & Renewables; 4 days; Europe. Intersolar is the world's largest solar technology trade fair and the number one meeting point for everyone in the solar industry. Intersolar focuses on the Photovoltaic and Solar ", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "ENERGY DECENTRAL", "dates": "Nov. 10 - 13, 2026", "duration_days": "4", "city": "Hannover", "country": "Germany", "region": "Europe", "venue": "Deutsche Messe Hannover", "official_website": "http://www.energy-decentral.com/en", "participants_url": "https://www.energy-decentral.com/en/exhibitors-products", "discovery_source_url": "https://www.eventseye.com/fairs/f-energy-decentral-29189-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Energy & Renewables; 4 days; Europe. International trade fair for innovative & decentralized energy supply. Energy supply and efficiency are among the defining issues of today's society and, in addition to the impact ", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "POWER-GEN INTERNATIONAL", "dates": "Jan. 18 - 21, 2027", "duration_days": "4", "city": "Salt Lake City, UT", "country": "USA", "region": "USA", "venue": "Salt Palace Convention Center", "official_website": "http://www.powergen.com", "participants_url": "https://www.powergen.com/exhibitors", "discovery_source_url": "https://www.eventseye.com/fairs/f-power-gen-international-2164-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Energy & Renewables; 4 days; USA. International Meeting of Electric Power Producers, Independent Power Producers, Co Generation Plants, Waste-to Energy Plants", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "INTERSOLAR NORTH AMERICA", "dates": "Feb. 08 - 11, 2027", "duration_days": "4", "city": "San Diego, CA", "country": "USA", "region": "USA", "venue": "San Diego Convention Center", "official_website": "http://www.intersolar.us", "participants_url": "https://exhibitors.iesna.com/exhibitors", "discovery_source_url": "https://www.eventseye.com/fairs/f-intersolar-north-america-14377-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Energy & Renewables; 4 days; USA. The premier solar event that connects innovators and decision makers in the solar and energy storage industry. Intersolar North America provides solar and energy storage vendors an", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "ACE", "dates": "June 21 - 24, 2026", "duration_days": "4", "city": "Washington D.C.", "country": "USA", "region": "USA", "venue": "Walter E. Washington Convention Center", "official_website": "http://ace.awwa.org", "participants_url": "https://ace.awwa.org/exhibitor-hub/", "discovery_source_url": "https://www.eventseye.com/fairs/f-ace-10677-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Energy & Renewables; 4 days; USA. AWWA (American Water Works Association) Annual Conference & Expo. ACE is one of the most relevant informational forums available to drinking water professions", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "CERSAIE", "dates": "Sept. 21 - 25, 2026", "duration_days": "5", "city": "Bologna", "country": "Italy", "region": "Europe", "venue": "Bologna Exhibition Centre", "official_website": "http://www.cersaie.it/en/index.php", "participants_url": "https://www.cersaie.it/en/e_lista.php", "discovery_source_url": "https://www.eventseye.com/fairs/f-cersaie-3739-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 5 days; Europe. International exhibition of Ceramics for the Building Industry and Bathroom Furnishings. An exclusive event for new design and technology trends in ceramic surfaces and other mater", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "BAU", "dates": "Jan. 11 - 15, 2027", "duration_days": "5", "city": "Munich", "country": "Germany", "region": "Europe", "venue": "Fairground Messe München", "official_website": "http://www.bau-muenchen.de", "participants_url": "https://bau-muenchen.com/en/trade-fair/exhibitor-directory/exhibitors-brands/", "discovery_source_url": "https://www.eventseye.com/fairs/f-bau-253-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 5 days; Europe. International Trade Fair for Building Materials, Building Systems, Building Renovation", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "INTERCLIMA + ELEC", "dates": "Sept. 28 - Oct. 01, 2026", "duration_days": "4", "city": "Paris", "country": "France", "region": "Europe", "venue": "Paris Expo Porte de Versailles", "official_website": "http://www.interclima.com", "participants_url": "https://www.interclima.com/fr-fr/exhibitor-hub.html#/", "discovery_source_url": "https://www.eventseye.com/fairs/f-interclima-elec-1411-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Europe. International Heating, Refrigeration, Air conditioning and Sanitaryware Exhibition", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "INTERNATIONAL SMART BUILDING TECHNOLOGIES, ELECTRIC LIGHTING & ELECTRONICS EXHIBITION", "dates": "Sept. 30 - Oct. 03, 2026", "duration_days": "4", "city": "Istanbul", "country": "Turkey", "region": "Europe", "venue": "Istanbul Expo Center / Istanbul Fuar Merkezi / CNR Expo", "official_website": "http://en.atechfuari.com", "participants_url": "https://en.atechfuari.com/exhibitors", "discovery_source_url": "https://www.eventseye.com/fairs/f-international-smart-building-technologies-electric-lighting-electronics-exhibition-32622-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Europe. International Smart Building Technologies, Electric Lighting & Electronics Exhibition. Smart homes and buildings enable people to improve their individual living standards while of", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "ARCHISTONE", "dates": "Nov. 10 - 13, 2026", "duration_days": "4", "city": "Madrid", "country": "Spain", "region": "Europe", "venue": "Ifema - Parque Ferial Juan Carlos I", "official_website": "http://www.ifema.es/en/archistone", "participants_url": "https://www.ifema.es/en/construtec/exhibitors/catalogue", "discovery_source_url": "https://www.eventseye.com/fairs/f-archistone-2126-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Europe. International exhibition of natural stone construction in Madrid. Included in the “Semana Internacional de la Construcción”", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "CONSTRUCTEC", "dates": "Nov. 10 - 13, 2026", "duration_days": "4", "city": "Madrid", "country": "Spain", "region": "Europe", "venue": "Ifema - Parque Ferial Juan Carlos I", "official_website": "http://www.ifema.es/en/construtec", "participants_url": "https://www.ifema.es/en/construtec/exhibitors/catalogue", "discovery_source_url": "https://www.eventseye.com/fairs/f-constructec-510-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Europe. CONSTRUTEC, the Spanish international trade fair for building materials, solutions and systems, is a strategic venue that creates synergies and brings added value to the entire bui", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "VETECO", "dates": "Nov. 10 - 13, 2026", "duration_days": "4", "city": "Madrid", "country": "Spain", "region": "Europe", "venue": "Ifema - Parque Ferial Juan Carlos I", "official_website": "http://www.ifema.es/en/veteco", "participants_url": "https://www.ifema.es/en/veteco/exhibitors/catalogue", "discovery_source_url": "https://www.eventseye.com/fairs/f-veteco-2795-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Europe. VETECO has consolidated its position as an european leading trade fair for windows, structural glass, façades, solar protection, curtains... and the building envelope as a whole", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "ERBIL BUILD EXPO", "dates": "Aug. 27 - 30, 2026", "duration_days": "4", "city": "Erbil", "country": "Iraq", "region": "Middle East", "venue": "Erbil International Fairground", "official_website": "http://erbilbuilding.com", "participants_url": "https://erbilbuilding.com/exhibitor-profile", "discovery_source_url": "https://www.eventseye.com/fairs/f-erbil-build-expo-29367-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Middle East. International Building & Construction Exhibition in Iraq. ERBIL BUILD EXPO, The biggest Construction Show in Iraq", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "HOLZ&BAU KLAGENFURTER", "dates": "Sept. 02 - 05, 2026", "duration_days": "4", "city": "Klagenfurt", "country": "Austria", "region": "Europe", "venue": "Klagenfurter Messe", "official_website": "http://www.kaerntnermessen.at/veranstaltungen/holz-bau/?lang=en", "participants_url": "https://www.kaerntnermessen.at/messen-ausstellerliste/?atts=ho&messe=Internationale+Holzmesse%2FHolz%26Bau%2FTreffpunkt+Jagd+2026", "discovery_source_url": "https://www.eventseye.com/fairs/f-holz-bau-klagenfurter-24905-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Europe. HOLZ&BAU KLAGENFURTER is one of the leading trade show in the heart of Europe for timber construction", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "IRAQ HVAC R EXPO", "dates": "Sept. 22 - 25, 2026", "duration_days": "4", "city": "Erbil", "country": "Iraq", "region": "Middle East", "venue": "Erbil International Fairground", "official_website": "http://iraqhvacrexpo.com", "participants_url": "https://iraqhvacrexpo.com/exhibitor-profile.html", "discovery_source_url": "https://www.eventseye.com/fairs/f-iraq-hvac-r-expo-32491-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Architecture, Construction & Engineering; 4 days; Middle East. Iraq International Construction, Air Conditioning, Refrigeration, Urban & Environmental Technologies Exhibition", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "IMTS", "dates": "Sept. 14 - 19, 2026", "duration_days": "6", "city": "Chicago, IL", "country": "USA", "region": "USA", "venue": "McCormick Place", "official_website": "http://www.imts.org", "participants_url": "https://www.imts.com:443/exhibitor/", "discovery_source_url": "https://www.eventseye.com/fairs/f-imts-1336-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Industrial Equipment & Automation; 6 days; USA. International Machine Tool Trade Show. More than 82, 000 industrial decision-makers attend the International Manufacturing Technology Show (IMTS) to get ideas and find answers to t", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "AUTOMATE SHOW", "dates": "June 22 - 25, 2026", "duration_days": "4", "city": "Chicago, IL", "country": "USA", "region": "USA", "venue": "McCormick Place", "official_website": "http://www.automateshow.com", "participants_url": "https://www.automateshow.com/exhibitors", "discovery_source_url": "https://www.eventseye.com/fairs/f-automate-show-24648-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Industrial Equipment & Automation; 4 days; USA. International industrial automation technologies trade exhibition in North America", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "INTERZUM", "dates": "May 11 - 14, 2027", "duration_days": "4", "city": "Cologne", "country": "Germany", "region": "Europe", "venue": "Exhibition Centre Cologne", "official_website": "http://www.interzum.com/en", "participants_url": "https://www.interzum.com/en/interzum-exhibitors/list-of-exhibitors/", "discovery_source_url": "https://www.eventseye.com/fairs/f-interzum-1546-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Industrial Equipment & Automation; 4 days; Europe. Interzum is the world’s leading trade fair for furniture production and interior design. Covering everything from innovative materials and intelligent components to smart technolog", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "AUTOMATICA", "dates": "June 22 - 25, 2027", "duration_days": "4", "city": "Munich", "country": "Germany", "region": "Europe", "venue": "Fairground Messe München", "official_website": "http://automatica-munich.com/en", "participants_url": "https://automatica-munich.com/en/trade-fair/exhibitor-directory/", "discovery_source_url": "https://www.eventseye.com/fairs/f-automatica-10401-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Industrial Equipment & Automation; 4 days; Europe. International Trade Fair for Automation: Assembly - Smart Automation and Robotics - Vision", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "SAUDI PLASTICS & PETROCHEM", "dates": "June 21 - 24, 2026", "duration_days": "4", "city": "Riyadh", "country": "Saudi Arabia", "region": "Middle East", "venue": "Riyadh International Exhibition Centre", "official_website": "http://saudipp.com", "participants_url": "https://saudipp.com/exhibitor-list/", "discovery_source_url": "https://www.eventseye.com/fairs/f-saudi-plastics-petrochem-5536-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Industrial Equipment & Automation; 4 days; Middle East. The Saudi Plastics & Petrochem trade fair is the platform that brings international and local innovative solutions, machinery and sustainable workflow practices for the plastics an", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "SAUDI PRINT & PACK", "dates": "June 21 - 24, 2026", "duration_days": "4", "city": "Riyadh", "country": "Saudi Arabia", "region": "Middle East", "venue": "Riyadh International Exhibition Centre", "official_website": "http://www.saudi-pp.com", "participants_url": "https://saudi-pp.com/exhibitor-list/", "discovery_source_url": "https://www.eventseye.com/fairs/f-saudi-print-pack-2394-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Industrial Equipment & Automation; 4 days; Middle East. The Saudi Print & Pack trade fair is the platform that brings international and local innovative solutions, machinery and sustainable workflow practices for the printing and packag", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "MACTECH EGYPT", "dates": "Dec. 17 - 20, 2026", "duration_days": "4", "city": "Cairo", "country": "Egypt", "region": "Middle East", "venue": "EIEC (Egypt International Exhibition Center)", "official_website": "http://mactech-eg.com", "participants_url": "https://mactech-eg.com/exhibitors-profile/", "discovery_source_url": "https://www.eventseye.com/fairs/f-mactech-egypt-1739-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Industrial Equipment & Automation; 4 days; Middle East. Pan-Arab/African Exhibition for Machine and Hand Tools System, Components and Safety Equipment", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "CLINICAL LAB EXPO", "dates": "July 26 - 30, 2026", "duration_days": "5", "city": "Anaheim, CA", "country": "USA", "region": "USA", "venue": "Anaheim Convention Center", "official_website": "http://meeting.aacc.org/call-for-proposals", "participants_url": "https://meeting.myadlm.org/exhibitors", "discovery_source_url": "https://www.eventseye.com/fairs/f-clinical-lab-expo-14948-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Life Sciences & Laboratory Technology; 5 days; USA. World’s largest gathering of professionals & exposition of clinical laboratory products & services. Clinical Lab Expo features new science & technology in all areas of clinical dia", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "ECB - EUROPEAN CONGRESS ON BIOTECHNOLOGY", "dates": "June 28 - July 01, 2026", "duration_days": "4", "city": "Antwerp", "country": "Belgium", "region": "Europe", "venue": "Flanders Meeting & Convention Center Antwerp", "official_website": "http://www.efbiotechnology.org/sections/events_european_congress_on_biotechnology", "participants_url": "http://www.efbiotechnology.org/exhibitors", "discovery_source_url": "https://www.eventseye.com/fairs/f-ecb-european-congress-on-biotechnology-631-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Life Sciences & Laboratory Technology; 4 days; Europe. International Biotechnology Symposium and Exhibition, organised by the European Federation of Biotechnology", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Medical Technology / MedTech", "event_name": "RSNA", "dates": "Nov. 29 - Dec. 03, 2026", "duration_days": "5", "city": "Chicago, IL", "country": "USA", "region": "USA", "venue": "McCormick Place", "official_website": "http://www.rsna.org/Annual-Meeting", "participants_url": "https://www.rsna.org/annual-meeting/exhibitors-and-sponsors", "discovery_source_url": "https://www.eventseye.com/fairs/f-rsna-14969-1.html", "source_type": "EventsEye seed + official website verification", "relevance_notes": "EventsEye fit: Medical Technology (MedTech); 5 days; USA. Radiology and medical imaging professionals Forum. The Radiological Society of North America (RSNA®) is an international society of radiologists, medical physicists and other medic", "directory_quality": "Public searchable directory or public official list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "ADIPEC", "dates": "Nov. 02 - 05, 2026", "duration_days": "4", "city": "Abu Dhabi", "country": "United Arab Emirates", "region": "Middle East", "venue": "ADNEC Centre Abu Dhabi", "official_website": "https://www.adipec.com/", "participants_url": "https://www.adipec.com/exhibition/exhibitor-list/", "discovery_source_url": "https://www.adipec.com/", "source_type": "Official event website", "relevance_notes": "Major energy ecosystem exhibition with oil, gas, low carbon, hydrogen, chemicals, maritime and energy-transition suppliers.", "directory_quality": "Public exhibitor list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "RE+", "dates": "Nov. 16 - 19, 2026", "duration_days": "4", "city": "Las Vegas, NV", "country": "USA", "region": "USA", "venue": "Las Vegas Convention Center", "official_website": "https://www.re-plus.com/", "participants_url": "https://re26.mapyourshow.com/8_0/index.cfm", "discovery_source_url": "https://www.re-plus.com/attend/", "source_type": "Official event website + MapYourShow directory", "relevance_notes": "Largest North American clean-energy event; strong solar, storage, grid and renewable-energy exhibitor base.", "directory_quality": "Public searchable directory", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "ECOMONDO", "dates": "Nov. 03 - 06, 2026", "duration_days": "4", "city": "Rimini", "country": "Italy", "region": "Europe", "venue": "Rimini Expo Centre", "official_website": "https://www.ecomondo.com/en", "participants_url": "https://www.ecomondo.com/en/catalogue/exhibitors", "discovery_source_url": "https://www.ecomondo.com/en/about/ecomondo-fair", "source_type": "Official event website", "relevance_notes": "Green and circular economy trade fair with environmental technologies, energy transition and resource-efficiency suppliers.", "directory_quality": "Public exhibitor catalogue", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "POLLUTEC LYON", "dates": "Oct. 06 - 09, 2026", "duration_days": "4", "city": "Lyon", "country": "France", "region": "Europe", "venue": "Eurexpo Lyon", "official_website": "https://www.pollutec.com/en-gb.html", "participants_url": "https://www.pollutec.com/en-gb.html", "discovery_source_url": "https://www.pollutec.com/en-gb/who-is-coming.html", "source_type": "Official event website", "relevance_notes": "Environmental and energy-transition trade show; official site exposes exhibitor list / Pollutec NOW links from the main event navigation.", "directory_quality": "Public exhibitor list linked from official site", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "AQUATECH AMSTERDAM", "dates": "Mar. 09 - 12, 2027", "duration_days": "4", "city": "Amsterdam", "country": "Netherlands", "region": "Europe", "venue": "RAI Amsterdam", "official_website": "https://www.aquatechtrade.com/amsterdam", "participants_url": "https://www.aquatechtrade.com/amsterdam/exhibitors", "discovery_source_url": "https://www.aquatechtrade.com/amsterdam", "source_type": "Official event website", "relevance_notes": "Water-process, drinking-water and wastewater technology exhibition; relevant to environmental and energy-adjacent infrastructure clients.", "directory_quality": "Public exhibitor list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Energy & Renewables", "event_name": "WINDENERGY HAMBURG", "dates": "Sept. 22 - 25, 2026", "duration_days": "4", "city": "Hamburg", "country": "Germany", "region": "Europe", "venue": "Hamburg Messe", "official_website": "https://www.windenergyhamburg.com/", "participants_url": "https://www.windenergyhamburg.com/exhibit-visit/exhibitor-directory", "discovery_source_url": "https://www.windenergyhamburg.com/exhibit-visit/exhibitor-directory", "source_type": "Official event website", "relevance_notes": "Global wind-energy trade fair with official exhibitor directory for turbine, offshore, storage and grid suppliers.", "directory_quality": "Public exhibitor directory", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "BATIMAT", "dates": "Sept. 28 - Oct. 01, 2026", "duration_days": "4", "city": "Paris", "country": "France", "region": "Europe", "venue": "Paris Expo Porte de Versailles", "official_website": "https://www.batimat.com/en-gb.html", "participants_url": "https://www.batimat.com/fr-fr/qui-participe/liste-des-exposants.html", "discovery_source_url": "https://www.batimat.com/en-gb.html", "source_type": "Official event website", "relevance_notes": "Major construction trade show for building decision-makers, specifiers and construction professionals.", "directory_quality": "Public exhibitor list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "BIG 5 GLOBAL", "dates": "Nov. 23 - 26, 2026", "duration_days": "4", "city": "Dubai", "country": "United Arab Emirates", "region": "Middle East", "venue": "Dubai World Trade Centre", "official_website": "https://www.big5global.com/", "participants_url": "https://www.big5global.com/about/", "discovery_source_url": "https://www.big5global.com/", "source_type": "Official event website", "relevance_notes": "Large Middle East construction event with co-located heavy, concrete, HVAC, marble/stone and built-environment sectors.", "directory_quality": "Official exhibitor-list navigation; current list may update by edition", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "ISH", "dates": "Mar. 15 - 19, 2027", "duration_days": "5", "city": "Frankfurt", "country": "Germany", "region": "Europe", "venue": "Messe Frankfurt", "official_website": "https://ish.messefrankfurt.com/frankfurt/en.html", "participants_url": "https://ish.messefrankfurt.com/frankfurt/en/exhibitor-search.html", "discovery_source_url": "https://ish.messefrankfurt.com/frankfurt/en.html", "source_type": "Official event website", "relevance_notes": "World-leading HVAC, water, heating and building-services trade fair; strong architecture/engineering fit.", "directory_quality": "Public exhibitor search", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "GLASSTEC", "dates": "Oct. 20 - 23, 2026", "duration_days": "4", "city": "Düsseldorf", "country": "Germany", "region": "Europe", "venue": "Messe Düsseldorf", "official_website": "https://www.glasstec-online.com/", "participants_url": "https://www.glasstec-online.com/vis/v1/en/directory/a", "discovery_source_url": "https://www.glasstec-online.com/en/Exhibitors", "source_type": "Official event website", "relevance_notes": "Glass production, processing and architecture-facing glass products; relevant for construction materials and engineering.", "directory_quality": "Public exhibitor index", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "MARMOMAC", "dates": "Sept. 22 - 25, 2026", "duration_days": "4", "city": "Verona", "country": "Italy", "region": "Europe", "venue": "Veronafiere", "official_website": "https://www.marmomac.com/en/", "participants_url": "https://www.marmomac.com/en/exhibitor/", "discovery_source_url": "https://www.marmomac.com/en/", "source_type": "Official event website", "relevance_notes": "Natural-stone supply chain event covering materials, machinery, architecture and design applications.", "directory_quality": "Public exhibitor list linked from official exhibitor page", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Architecture, Construction & Engineering", "event_name": "GREENBUILD INTERNATIONAL CONFERENCE + EXPO", "dates": "Oct. 20 - 23, 2026", "duration_days": "4", "city": "New York, NY", "country": "USA", "region": "USA", "venue": "Javits Center", "official_website": "https://informaconnect.com/greenbuild/", "participants_url": "https://gice2026.smallworldlabs.com/exhibitors/", "discovery_source_url": "https://informaconnect.com/greenbuild/", "source_type": "Official event website + SmallWorldLabs directory", "relevance_notes": "Major sustainable building event for architecture, construction, engineering and green-building product suppliers.", "directory_quality": "Public exhibitor directory", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "HANNOVER MESSE", "dates": "Apr. 05 - 08, 2027", "duration_days": "4", "city": "Hannover", "country": "Germany", "region": "Europe", "venue": "Hannover Exhibition Grounds", "official_website": "https://www.hannovermesse.de/en/", "participants_url": "https://www.hannovermesse.de/en/expo/exhibitor-short-index/index-2", "discovery_source_url": "https://www.hannovermesse.de/en/for-visitors/opening-hours/", "source_type": "Official event website", "relevance_notes": "Flagship industrial transformation fair with automation, energy systems, robotics, production and engineering suppliers.", "directory_quality": "Public exhibitor/product search entry", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "PACK EXPO INTERNATIONAL", "dates": "Oct. 18 - 21, 2026", "duration_days": "4", "city": "Chicago, IL", "country": "USA", "region": "USA", "venue": "McCormick Place", "official_website": "https://www.packexpointernational.com/", "participants_url": "https://packexpo26.mapyourshow.com/8_0/index.cfm", "discovery_source_url": "https://www.packexpointernational.com/", "source_type": "Official event website + MapYourShow directory", "relevance_notes": "Packaging, processing equipment, automation and industrial machinery event with large exhibitor directory.", "directory_quality": "Public searchable directory", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "FORMNEXT", "dates": "Nov. 17 - 20, 2026", "duration_days": "4", "city": "Frankfurt", "country": "Germany", "region": "Europe", "venue": "Messe Frankfurt", "official_website": "https://formnext.mesago.com/frankfurt/en.html", "participants_url": "https://formnext.mesago.com/frankfurt/en/exhibitor-search.html", "discovery_source_url": "https://formnext.mesago.com/frankfurt/en.html", "source_type": "Official event website", "relevance_notes": "Additive manufacturing and industrial 3D printing event covering equipment, materials, post-processing and automation.", "directory_quality": "Public AM directory / exhibitor search", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "EUROBLECH", "dates": "Oct. 20 - 23, 2026", "duration_days": "4", "city": "Hannover", "country": "Germany", "region": "Europe", "venue": "Hannover Exhibition Grounds", "official_website": "https://www.euroblech.com/en-gb.html", "participants_url": "https://www.euroblech.com/en-gb/exhibitor-directory.html", "discovery_source_url": "https://www.euroblech.com/en-gb.html", "source_type": "Official event website", "relevance_notes": "International sheet-metal working technology exhibition with machinery, forming, joining, automation and tooling suppliers.", "directory_quality": "Public exhibitor directory", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "MSV INTERNATIONAL INDUSTRIAL FAIR", "dates": "Oct. 06 - 09, 2026", "duration_days": "4", "city": "Brno", "country": "Czech Republic", "region": "Europe", "venue": "Brno Exhibition Centre", "official_website": "https://www.bvv.cz/en/msv", "participants_url": "https://www.bvv.cz/en/msv", "discovery_source_url": "https://www.bvv.cz/en/msv", "source_type": "Official venue/event website", "relevance_notes": "Central European industrial fair with machinery, automation, digital factory and engineering suppliers; official page links registered-company list.", "directory_quality": "Public registered-company list linked from official page", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Industrial Equipment & Automation", "event_name": "NPE: THE PLASTICS SHOW", "dates": "May 03 - 07, 2027", "duration_days": "5", "city": "Orlando, FL", "country": "USA", "region": "USA", "venue": "Orange County Convention Center", "official_website": "https://npe.org/", "participants_url": "https://npe2027.mapyourshow.com/8_0/exhview/index.cfm", "discovery_source_url": "https://npe.org/", "source_type": "Official event website + MapYourShow floor plan", "relevance_notes": "Largest plastics trade show in the Americas, with machinery, materials, automation and processing technology suppliers.", "directory_quality": "Public floorplan with exhibitor names", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "BIO INTERNATIONAL CONVENTION", "dates": "June 22 - 25, 2026", "duration_days": "4", "city": "San Diego, CA", "country": "USA", "region": "USA", "venue": "San Diego Convention Center", "official_website": "https://convention.bio.org/landing", "participants_url": "https://bio2026.mapyourshow.com/8_0/index.cfm", "discovery_source_url": "https://convention.bio.org/landing", "source_type": "Official event website + MapYourShow directory", "relevance_notes": "Major biotechnology convention with life-science companies, pharma, biotech services and research suppliers.", "directory_quality": "Public searchable directory", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "ACHEMA", "dates": "June 14 - 18, 2027", "duration_days": "5", "city": "Frankfurt", "country": "Germany", "region": "Europe", "venue": "Messe Frankfurt", "official_website": "https://www.achema.de/en/", "participants_url": "https://www.achema.de/en/exhibitors", "discovery_source_url": "https://www.achema.de/en/", "source_type": "Official event website", "relevance_notes": "Leading show for life science and process industries; strong laboratory, biotech, chemical process and process-equipment overlap.", "directory_quality": "Public exhibitor page / myACHEMA directory entry", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "PITTCON CONFERENCE + EXPO", "dates": "Apr. 24 - 28, 2027", "duration_days": "5", "city": "Pittsburgh, PA", "country": "USA", "region": "USA", "venue": "David L. Lawrence Convention Center", "official_website": "https://pittcon.org/", "participants_url": "https://pittcon.org/exhibit-pittcon/", "discovery_source_url": "https://pittcon.org/expo/", "source_type": "Official event website", "relevance_notes": "Analytical laboratory science expo with instrumentation, lab equipment, chemistry and measurement suppliers.", "directory_quality": "Official exhibitor list + floor plan entry page", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "BIOPROCESS INTERNATIONAL", "dates": "Sept. 22 - 25, 2026", "duration_days": "4", "city": "Boston, MA", "country": "USA", "region": "USA", "venue": "Hynes Convention Center", "official_website": "https://informaconnect.com/bioprocessinternational/", "participants_url": "https://informaconnect.com/bioprocessinternational/sponsors/", "discovery_source_url": "https://www.bioprocessintl.com/events", "source_type": "Official event website + organizer event listing", "relevance_notes": "Bioprocessing event for upstream/downstream processing, cell culture, CMC and biologics scale-up suppliers.", "directory_quality": "Public sponsors/exhibitors list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "THE BIOPROCESSING SUMMIT", "dates": "Aug. 10 - 13, 2026", "duration_days": "4", "city": "Boston, MA", "country": "USA", "region": "USA", "venue": "Sheraton Boston", "official_website": "https://www.bioprocessingsummit.com/", "participants_url": "https://www.bioprocessingsummit.com/attendee-list", "discovery_source_url": "https://www.bioprocessingsummit.com/attendee-list", "source_type": "Official event website", "relevance_notes": "Life-science R&D and bioprocessing meeting with public participant-company list; useful for lab and biopharma suppliers.", "directory_quality": "Public participant/company list", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "WHX LABS DUBAI", "dates": "Jan. 25 - 28, 2027", "duration_days": "4", "city": "Dubai", "country": "United Arab Emirates", "region": "Middle East", "venue": "Dubai Exhibition Centre / Dubai World Trade Centre", "official_website": "https://www.worldhealthexpo.com/events/labs/dubai/", "participants_url": "https://www.worldhealthexpo.com/events/labs/dubai/attend/exhibitor-list/", "discovery_source_url": "https://www.worldhealthexpo.com/events/labs/dubai/", "source_type": "Official event website", "relevance_notes": "Laboratory and diagnostics zone now integrated into World Health Expo; strong lab technology and diagnostics overlap.", "directory_quality": "Public exhibitor list", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Medical Technology / MedTech", "event_name": "MEDICA", "dates": "Nov. 16 - 19, 2026", "duration_days": "4", "city": "Düsseldorf", "country": "Germany", "region": "Europe", "venue": "Messe Düsseldorf", "official_website": "https://www.medica-tradefair.com/", "participants_url": "https://www.medica-tradefair.com/vis/v1/en/catalogue", "discovery_source_url": "https://www.medica-tradefair.com/en/Exhibit/Information/At_a_glance", "source_type": "Official event website", "relevance_notes": "World-leading medical technology and healthcare trade fair with devices, diagnostics, imaging, lab medicine and healthcare suppliers.", "directory_quality": "Public exhibitor/product database; edition database updates through official catalogue", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Medical Technology / MedTech", "event_name": "COMPAMED", "dates": "Nov. 16 - 19, 2026", "duration_days": "4", "city": "Düsseldorf", "country": "Germany", "region": "Europe", "venue": "Messe Düsseldorf", "official_website": "https://www.compamed-tradefair.com/", "participants_url": "https://www.compamed-tradefair.com/vis/v1/en/directory/w?event=logout&lang=2&oid=53322&ticket=g_u_e_s_t", "discovery_source_url": "https://www.compamed-tradefair.com/", "source_type": "Official event website", "relevance_notes": "Supplier trade fair for medical technology components, OEM, materials, microtechnology, packaging and medical-device production.", "directory_quality": "Public exhibitor index", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Medical Technology / MedTech", "event_name": "WORLD HEALTH EXPO DUBAI", "dates": "Jan. 25 - 28, 2027", "duration_days": "4", "city": "Dubai", "country": "United Arab Emirates", "region": "Middle East", "venue": "Dubai Exhibition Centre / Dubai World Trade Centre", "official_website": "https://www.worldhealthexpo.com/events/healthcare/dubai/", "participants_url": "https://www.worldhealthexpo.com/events/healthcare/dubai/attend/exhibitor-list/", "discovery_source_url": "https://www.worldhealthexpo.com/events/healthcare/dubai/", "source_type": "Official event website", "relevance_notes": "Formerly Arab Health; major healthcare and medical-product exhibition with global healthcare suppliers.", "directory_quality": "Public exhibitor list", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Medical Technology / MedTech", "event_name": "REHACARE INTERNATIONAL", "dates": "Sept. 23 - 26, 2026", "duration_days": "4", "city": "Düsseldorf", "country": "Germany", "region": "Europe", "venue": "Messe Düsseldorf", "official_website": "https://www.rehacare.com/", "participants_url": "https://www.rehacare.com/vis/v1/en/directory/a", "discovery_source_url": "https://www.rehacare.com/", "source_type": "Official event website", "relevance_notes": "Rehabilitation, assistive technology and care trade fair with medical devices and accessibility equipment suppliers.", "directory_quality": "Public exhibitor index", "verification_status": "Verified", "confidence": "High", "last_checked": "2026-06-15"}, {"industry": "Medical Technology / MedTech", "event_name": "AAOS ANNUAL MEETING", "dates": "Mar. 03 - 06, 2027", "duration_days": "4", "city": "Las Vegas, NV", "country": "USA", "region": "USA", "venue": "Venetian Convention & Expo Center", "official_website": "https://www.aaos.org/annual/", "participants_url": "https://aaos27.mapyourshow.com/8_0/floorplan/index.cfm?st=", "discovery_source_url": "https://www.aaos.org/annual/", "source_type": "Official event website + MapYourShow floor plan", "relevance_notes": "Orthopaedic surgery meeting with industry exhibits for implants, instruments, robotics, imaging and surgical technology.", "directory_quality": "Public floorplan with exhibitor names", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}, {"industry": "Medical Technology / MedTech", "event_name": "HIMSS GLOBAL HEALTH CONFERENCE & EXHIBITION", "dates": "Apr. 05 - 08, 2027", "duration_days": "4", "city": "Chicago, IL", "country": "USA", "region": "USA", "venue": "McCormick Place", "official_website": "https://www.himssconference.com/", "participants_url": "https://himss26.mapyourshow.com/8_0/explore/exhibitor-gallery.cfm", "discovery_source_url": "https://www.himssconference.com/save-the-date-for-himss27/", "source_type": "Official event website + prior MapYourShow directory", "relevance_notes": "Healthcare technology exhibition; included as secondary medtech fit because it is health IT rather than only industrial software.", "directory_quality": "Public exhibitor directory surface; 2027 list pending", "verification_status": "Verified", "confidence": "Medium", "last_checked": "2026-06-15"}], "candidates": [{"industry": "Energy & Renewables", "event_name": "HUSUM WIND", "candidate_dates": "Sept. 14 - 17, 2027", "candidate_region": "Europe", "candidate_source_url": "https://www.husumwind.com/en", "official_website": "https://www.husumwind.com/en", "possible_exhibitor_url": "https://www.husumwind.com/en/exhibitors-and-providers", "next_check_needed": "Re-check when 2027 exhibitor directory replaces the 2025 exhibitor/providers list.", "candidate_status": "Pending - exhibitor list not published yet", "notes": "Official page confirms 14-17 Sep 2027 and 600+ exhibitors, but the public exhibitor list is still 2025."}, {"industry": "Architecture, Construction & Engineering", "event_name": "COVERINGS", "candidate_dates": "Apr. 06 - 09, 2027", "candidate_region": "USA", "candidate_source_url": "https://www.coverings.com/ufaq/", "official_website": "https://www.coverings.com/", "possible_exhibitor_url": "https://coverings2026.smallworldlabs.com/exhibitors", "next_check_needed": "Re-check for a 2027 SmallWorldLabs exhibitor directory.", "candidate_status": "Maybe - needs manual review", "notes": "Official FAQ confirms 2027 dates, but visible directory found during research was the 2026 directory."}, {"industry": "Architecture, Construction & Engineering", "event_name": "INTERMAT", "candidate_dates": "Apr. 21 - 24, 2027", "candidate_region": "Europe", "candidate_source_url": "https://travel2fair.com/exhibitions/intermat", "official_website": "https://www.intermatconstruction.com/", "possible_exhibitor_url": "https://10times.com/intermat-expo/exhibitors", "next_check_needed": "Find official exhibitor directory once INTERMAT 2027 publishes it.", "candidate_status": "Maybe - no official exhibitor list found", "notes": "Strong construction fit and 4 days, but current visible list source was not official."}, {"industry": "Industrial Equipment & Automation", "event_name": "FABTECH Chicago", "candidate_dates": "Sept. 13 - 16, 2027", "candidate_region": "USA", "candidate_source_url": "https://www.fabtechexpo.com/about", "official_website": "https://www.fabtechexpo.com/", "possible_exhibitor_url": "https://fabtech2026.smallworldlabs.com/exhibitors", "next_check_needed": "Re-check for 2027 exhibitor directory closer to event.", "candidate_status": "Pending - exhibitor list not published yet", "notes": "2027 dates are strong and 4 days, but public directory found was for the 2026 Las Vegas edition."}, {"industry": "Industrial Equipment & Automation", "event_name": "35.BI-MU", "candidate_dates": "Oct. 13 - 16, 2026", "candidate_region": "Europe", "candidate_source_url": "https://www.bimu.it/en/", "official_website": "https://www.bimu.it/en/", "possible_exhibitor_url": "https://dp-bimu.fieramilano.it/en/", "next_check_needed": "Check whether 2026 list is live; organizer announced the list would soon be available online.", "candidate_status": "Maybe - needs manual review", "notes": "Good industrial automation fit, but public list was not confirmed enough for Verified."}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "ASHG Annual Meeting", "candidate_dates": "Oct. 26 - 30, 2027", "candidate_region": "USA", "candidate_source_url": "https://www.ashg.org/meetings/future-past/", "official_website": "https://www.ashg.org/", "possible_exhibitor_url": "", "next_check_needed": "Check official 2027 exhibitor directory when ASHG opens exhibit sales.", "candidate_status": "Pending - exhibitor list not published yet", "notes": "Strong genomics/life-science fit; no public 2027 exhibitor directory found yet."}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "ASMS Conference on Mass Spectrometry", "candidate_dates": "June 06 - 10, 2027", "candidate_region": "USA", "candidate_source_url": "https://www.asms.org/conferences/annual-conference/future-annual-conferences", "official_website": "https://www.asms.org/", "possible_exhibitor_url": "", "next_check_needed": "Check exhibitor toolkit/list once 2027 prospectus is posted.", "candidate_status": "Pending - exhibitor list not published yet", "notes": "Strong analytical laboratory fit; no current 2027 public exhibitor list found."}, {"industry": "Medical Technology / MedTech", "event_name": "ECR", "candidate_dates": "Mar. 03 - 07, 2027", "candidate_region": "Europe", "candidate_source_url": "https://myesr.org/congress/", "official_website": "https://myesr.org/congress/", "possible_exhibitor_url": "https://www.myesr.org/congress/exhibit/", "next_check_needed": "Find official exhibitor list; current official page is exhibit application only.", "candidate_status": "Maybe - no official exhibitor list found", "notes": "Strong radiology / imaging technology fit, but no public exhibitor list found."}, {"industry": "Medical Technology / MedTech", "event_name": "AORN Global Surgical Conference & Expo", "candidate_dates": "Apr. 10 - 13, 2027", "candidate_region": "USA", "candidate_source_url": "https://www.aorn.org/surgical-expo", "official_website": "https://www.aorn.org/surgical-expo", "possible_exhibitor_url": "https://aorn26.mapyourshow.com/", "next_check_needed": "Re-check for 2027 MapYourShow directory; only 2026 directory found.", "candidate_status": "Pending - exhibitor list not published yet", "notes": "Strong surgical technology fit, but 2027 list not confirmed."}], "checks": [{"industry": "Energy & Renewables", "event_name": "IAA TRANSPORTATION", "participants_url": "https://www.iaa-transportation.com/en/visitors/iaa-transportation/exhibitor-directory", "http_status": "200", "final_url": "https://www.iaa-transportation.com/en/visitors/iaa-transportation/exhibitor-directory", "error": ""}, {"industry": "Energy & Renewables", "event_name": "INTERSOLAR EUROPE", "participants_url": "https://www.intersolar.de/exhibitorlist", "http_status": "200", "final_url": "https://www.intersolar.de/exhibitorlist", "error": ""}, {"industry": "Energy & Renewables", "event_name": "ENERGY DECENTRAL", "participants_url": "https://www.energy-decentral.com/en/exhibitors-products", "http_status": "200", "final_url": "https://www.energy-decentral.com/en/exhibitors-products", "error": ""}, {"industry": "Energy & Renewables", "event_name": "POWER-GEN INTERNATIONAL", "participants_url": "https://www.powergen.com/exhibitors", "http_status": "200", "final_url": "https://www.powergen.com/exhibitors", "error": ""}, {"industry": "Energy & Renewables", "event_name": "INTERSOLAR NORTH AMERICA", "participants_url": "https://exhibitors.iesna.com/exhibitors", "http_status": "200", "final_url": "https://exhibitors.iesna.com/exhibitors", "error": ""}, {"industry": "Energy & Renewables", "event_name": "ACE", "participants_url": "https://ace.awwa.org/exhibitor-hub/", "http_status": "200", "final_url": "https://ace.awwa.org/exhibitor-hub/", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "CERSAIE", "participants_url": "https://www.cersaie.it/en/e_lista.php", "http_status": "200", "final_url": "https://www.cersaie.it/en/e_lista.php", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "BAU", "participants_url": "https://bau-muenchen.com/en/trade-fair/exhibitor-directory/exhibitors-brands/", "http_status": "200", "final_url": "https://bau-muenchen.com/en/trade-fair/exhibitor-directory/exhibitors-brands/", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "INTERCLIMA + ELEC", "participants_url": "https://www.interclima.com/fr-fr/exhibitor-hub.html#/", "http_status": "200", "final_url": "https://www.interclima.com/fr-fr/exhibitor-hub.html#/", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "INTERNATIONAL SMART BUILDING TECHNOLOGIES, ELECTRIC LIGHTING & ELECTRONICS EXHIBITION", "participants_url": "https://en.atechfuari.com/exhibitors", "http_status": "200", "final_url": "https://en.atechfuari.com/exhibitors", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "ARCHISTONE", "participants_url": "https://www.ifema.es/en/construtec/exhibitors/catalogue", "http_status": "200", "final_url": "https://www.ifema.es/en/construtec/exhibitors/catalogue", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "CONSTRUCTEC", "participants_url": "https://www.ifema.es/en/construtec/exhibitors/catalogue", "http_status": "200", "final_url": "https://www.ifema.es/en/construtec/exhibitors/catalogue", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "VETECO", "participants_url": "https://www.ifema.es/en/veteco/exhibitors/catalogue", "http_status": "200", "final_url": "https://www.ifema.es/en/veteco/exhibitors/catalogue", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "ERBIL BUILD EXPO", "participants_url": "https://erbilbuilding.com/exhibitor-profile", "http_status": "200", "final_url": "https://erbilbuilding.com/exhibitor-profile", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "HOLZ&BAU KLAGENFURTER", "participants_url": "https://www.kaerntnermessen.at/messen-ausstellerliste/?atts=ho&messe=Internationale+Holzmesse%2FHolz%26Bau%2FTreffpunkt+Jagd+2026", "http_status": "200", "final_url": "https://www.kaerntnermessen.at/messen-ausstellerliste/?atts=ho&messe=Internationale+Holzmesse%2FHolz%26Bau%2FTreffpunkt+Jagd+2026", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "IRAQ HVAC R EXPO", "participants_url": "https://iraqhvacrexpo.com/exhibitor-profile.html", "http_status": "200", "final_url": "https://iraqhvacrexpo.com/exhibitor-profile.html", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "IMTS", "participants_url": "https://www.imts.com:443/exhibitor/", "http_status": "200", "final_url": "https://www.imts.com:443/exhibitor/", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "AUTOMATE SHOW", "participants_url": "https://www.automateshow.com/exhibitors", "http_status": "200", "final_url": "https://www.automateshow.com/exhibitors", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "INTERZUM", "participants_url": "https://www.interzum.com/en/interzum-exhibitors/list-of-exhibitors/", "http_status": "200", "final_url": "https://www.interzum.com/en/interzum-exhibitors/list-of-exhibitors/", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "AUTOMATICA", "participants_url": "https://automatica-munich.com/en/trade-fair/exhibitor-directory/", "http_status": "200", "final_url": "https://automatica-munich.com/en/trade-fair/exhibitor-directory/", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "SAUDI PLASTICS & PETROCHEM", "participants_url": "https://saudipp.com/exhibitor-list/", "http_status": "200", "final_url": "https://saudipp.com/exhibitor-list/", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "SAUDI PRINT & PACK", "participants_url": "https://saudi-pp.com/exhibitor-list/", "http_status": "200", "final_url": "https://saudi-pp.com/exhibitor-list/", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "MACTECH EGYPT", "participants_url": "https://mactech-eg.com/exhibitors-profile/", "http_status": "200", "final_url": "https://mactech-eg.com/exhibitors-profile/", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "CLINICAL LAB EXPO", "participants_url": "https://meeting.myadlm.org/exhibitors", "http_status": "200", "final_url": "https://meeting.myadlm.org/exhibitors", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "ECB - EUROPEAN CONGRESS ON BIOTECHNOLOGY", "participants_url": "http://www.efbiotechnology.org/exhibitors", "http_status": "200", "final_url": "http://www.efbiotechnology.org/exhibitors", "error": ""}, {"industry": "Medical Technology / MedTech", "event_name": "RSNA", "participants_url": "https://www.rsna.org/annual-meeting/exhibitors-and-sponsors", "http_status": "200", "final_url": "https://www.rsna.org/annual-meeting/exhibitors-and-sponsors", "error": ""}, {"industry": "Energy & Renewables", "event_name": "ADIPEC", "participants_url": "https://www.adipec.com/exhibition/exhibitor-list/", "http_status": "200", "final_url": "https://www.adipec.com/exhibition/exhibitor-list/", "error": ""}, {"industry": "Energy & Renewables", "event_name": "RE+", "participants_url": "https://re26.mapyourshow.com/8_0/index.cfm", "http_status": "200", "final_url": "https://re26.mapyourshow.com/8_0/index.cfm", "error": ""}, {"industry": "Energy & Renewables", "event_name": "ECOMONDO", "participants_url": "https://www.ecomondo.com/en/catalogue/exhibitors", "http_status": "200", "final_url": "https://www.ecomondo.com/en/catalogue/exhibitors", "error": ""}, {"industry": "Energy & Renewables", "event_name": "POLLUTEC LYON", "participants_url": "https://www.pollutec.com/en-gb.html", "http_status": "200", "final_url": "https://www.pollutec.com/en-gb.html", "error": ""}, {"industry": "Energy & Renewables", "event_name": "AQUATECH AMSTERDAM", "participants_url": "https://www.aquatechtrade.com/amsterdam/exhibitors", "http_status": "200", "final_url": "https://www.aquatechtrade.com/amsterdam/exhibitors", "error": ""}, {"industry": "Energy & Renewables", "event_name": "WINDENERGY HAMBURG", "participants_url": "https://www.windenergyhamburg.com/exhibit-visit/exhibitor-directory", "http_status": "200", "final_url": "https://www.windenergyhamburg.com/exhibit-visit/exhibitor-directory", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "BATIMAT", "participants_url": "https://www.batimat.com/fr-fr/qui-participe/liste-des-exposants.html", "http_status": "200", "final_url": "https://www.batimat.com/fr-fr/qui-participe/liste-des-exposants.html", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "BIG 5 GLOBAL", "participants_url": "https://www.big5global.com/about/", "http_status": "200", "final_url": "https://www.big5global.com/about/", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "ISH", "participants_url": "https://ish.messefrankfurt.com/frankfurt/en/exhibitor-search.html", "http_status": "200", "final_url": "https://ish.messefrankfurt.com/frankfurt/en/exhibitor-search.html", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "GLASSTEC", "participants_url": "https://www.glasstec-online.com/vis/v1/en/directory/a", "http_status": "200", "final_url": "https://www.glasstec-online.com/vis/v1/en/directory/a", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "MARMOMAC", "participants_url": "https://www.marmomac.com/en/exhibitor/", "http_status": "200", "final_url": "https://www.marmomac.com/en/exhibitor/", "error": ""}, {"industry": "Architecture, Construction & Engineering", "event_name": "GREENBUILD INTERNATIONAL CONFERENCE + EXPO", "participants_url": "https://gice2026.smallworldlabs.com/exhibitors/", "http_status": "200", "final_url": "https://gice2026.smallworldlabs.com/exhibitors/", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "HANNOVER MESSE", "participants_url": "https://www.hannovermesse.de/en/expo/exhibitor-short-index/index-2", "http_status": "200", "final_url": "https://www.hannovermesse.de/en/expo/exhibitor-short-index/index-2", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "PACK EXPO INTERNATIONAL", "participants_url": "https://packexpo26.mapyourshow.com/8_0/index.cfm", "http_status": "200", "final_url": "https://packexpo26.mapyourshow.com/8_0/index.cfm", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "FORMNEXT", "participants_url": "https://formnext.mesago.com/frankfurt/en/exhibitor-search.html", "http_status": "200", "final_url": "https://formnext.mesago.com/frankfurt/en/exhibitor-search.html", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "EUROBLECH", "participants_url": "https://www.euroblech.com/en-gb/exhibitor-directory.html", "http_status": "200", "final_url": "https://www.euroblech.com/en-gb/exhibitor-directory.html", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "MSV INTERNATIONAL INDUSTRIAL FAIR", "participants_url": "https://www.bvv.cz/en/msv", "http_status": "200", "final_url": "https://www.bvv.cz/en/msv", "error": ""}, {"industry": "Industrial Equipment & Automation", "event_name": "NPE: THE PLASTICS SHOW", "participants_url": "https://npe2027.mapyourshow.com/8_0/exhview/index.cfm", "http_status": "200", "final_url": "https://npe2027.mapyourshow.com/8_0/exhview/index.cfm", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "BIO INTERNATIONAL CONVENTION", "participants_url": "https://bio2026.mapyourshow.com/8_0/index.cfm", "http_status": "200", "final_url": "https://bio2026.mapyourshow.com/8_0/index.cfm", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "ACHEMA", "participants_url": "https://www.achema.de/en/exhibitors", "http_status": "200", "final_url": "https://www.achema.de/en/exhibitors", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "PITTCON CONFERENCE + EXPO", "participants_url": "https://pittcon.org/exhibit-pittcon/", "http_status": "200", "final_url": "https://pittcon.org/exhibit-pittcon/", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "BIOPROCESS INTERNATIONAL", "participants_url": "https://informaconnect.com/bioprocessinternational/sponsors/", "http_status": "200", "final_url": "https://informaconnect.com/bioprocessinternational/sponsors/", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "THE BIOPROCESSING SUMMIT", "participants_url": "https://www.bioprocessingsummit.com/attendee-list", "http_status": "200", "final_url": "https://www.bioprocessingsummit.com/attendee-list", "error": ""}, {"industry": "Life Sciences & Laboratory Technology", "event_name": "WHX LABS DUBAI", "participants_url": "https://www.worldhealthexpo.com/events/labs/dubai/attend/exhibitor-list/", "http_status": "200", "final_url": "https://www.worldhealthexpo.com/events/labs/dubai/attend/exhibitor-list/", "error": ""}, {"industry": "Medical Technology / MedTech", "event_name": "MEDICA", "participants_url": "https://www.medica-tradefair.com/vis/v1/en/catalogue", "http_status": "200", "final_url": "https://www.medica-tradefair.com/vis/v1/en/catalogue", "error": ""}, {"industry": "Medical Technology / MedTech", "event_name": "COMPAMED", "participants_url": "https://www.compamed-tradefair.com/vis/v1/en/directory/w?event=logout&lang=2&oid=53322&ticket=g_u_e_s_t", "http_status": "200", "final_url": "https://www.compamed-tradefair.com/vis/v1/en/directory/w?event=logout&lang=2&oid=53322&ticket=g_u_e_s_t", "error": ""}, {"industry": "Medical Technology / MedTech", "event_name": "WORLD HEALTH EXPO DUBAI", "participants_url": "https://www.worldhealthexpo.com/events/healthcare/dubai/attend/exhibitor-list/", "http_status": "200", "final_url": "https://www.worldhealthexpo.com/events/healthcare/dubai/attend/exhibitor-list/", "error": ""}, {"industry": "Medical Technology / MedTech", "event_name": "REHACARE INTERNATIONAL", "participants_url": "https://www.rehacare.com/vis/v1/en/directory/a", "http_status": "200", "final_url": "https://www.rehacare.com/vis/v1/en/directory/a", "error": ""}, {"industry": "Medical Technology / MedTech", "event_name": "AAOS ANNUAL MEETING", "participants_url": "https://aaos27.mapyourshow.com/8_0/floorplan/index.cfm?st=", "http_status": "200", "final_url": "https://aaos27.mapyourshow.com/8_0/floorplan/index.cfm?st=", "error": ""}, {"industry": "Medical Technology / MedTech", "event_name": "HIMSS GLOBAL HEALTH CONFERENCE & EXHIBITION", "participants_url": "https://himss26.mapyourshow.com/8_0/explore/exhibitor-gallery.cfm", "http_status": "200", "final_url": "https://www.himssconference.com/", "error": ""}], "summary": {"total": 56, "industries": {"Energy & Renewables": 12, "Architecture, Construction & Engineering": 16, "Industrial Equipment & Automation": 13, "Life Sciences & Laboratory Technology": 8, "Medical Technology / MedTech": 7}, "regions": {"Europe": 30, "USA": 17, "Middle East": 9}, "confidence": {"High": 43, "Medium": 13}, "countries": {"USA": 17, "Germany": 16, "United Arab Emirates": 4, "Italy": 3, "France": 3, "Spain": 3, "Iraq": 2, "Saudi Arabia": 2, "Turkey": 1, "Austria": 1, "Egypt": 1, "Belgium": 1, "Netherlands": 1, "Czech Republic": 1}, "durations": {"4": 46, "5": 8, "6": 2}, "urlOk": 56, "urlTotal": 56, "candidateCount": 9}};
+
+    const $ = (id) => document.getElementById(id);
+    const rows = DATA.rows;
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+    }
+
+    function unique(field) {
+      return [...new Set(rows.map((row) => row[field]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    }
+
+    function fillSelect(id, values) {
+      const select = $(id);
+      values.forEach((value) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+    }
+
+    function renderBars(id, obj, maxItems = 20) {
+      const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, maxItems);
+      const max = Math.max(...entries.map(([, value]) => value), 1);
+      $(id).innerHTML = entries.map(([label, value]) => `
+        <div class="bar-row">
+          <div class="bar-label">${escapeHtml(label)}</div>
+          <div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${(value / max) * 100}%"></div></div>
+          <div class="bar-value">${value}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderRegionDonut() {
+      const total = DATA.summary.total || 1;
+      const europe = ((DATA.summary.regions.Europe || 0) / total) * 100;
+      const usa = europe + ((DATA.summary.regions.USA || 0) / total) * 100;
+      $('regionDonut').style.setProperty('--europe', `${europe}%`);
+      $('regionDonut').style.setProperty('--usa', `${usa}%`);
+      const colors = { Europe: 'var(--blue)', USA: 'var(--teal)', 'Middle East': 'var(--gold)' };
+      $('regionLegend').innerHTML = Object.entries(DATA.summary.regions)
+        .sort((a, b) => b[1] - a[1])
+        .map(([region, count]) => `
+          <div class="legend-item">
+            <span class="swatch" style="background:${colors[region] || 'var(--muted)'}"></span>
+            <span>${escapeHtml(region)}</span>
+            <strong>${count}</strong>
+          </div>
+        `).join('');
+    }
+
+    function filteredRows() {
+      const industry = $('industryFilter').value;
+      const region = $('regionFilter').value;
+      const confidence = $('confidenceFilter').value;
+      const q = $('searchFilter').value.trim().toLowerCase();
+      return rows.filter((row) => {
+        if (industry && row.industry !== industry) return false;
+        if (region && row.region !== region) return false;
+        if (confidence && row.confidence !== confidence) return false;
+        if (q) {
+          const haystack = [row.event_name, row.city, row.country, row.venue, row.relevance_notes, row.dates].join(' ').toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderTable() {
+      const visible = filteredRows();
+      $('tableCount').textContent = `${visible.length} of ${rows.length} verified exhibitions shown`;
+      if (!visible.length) {
+        $('tableBody').innerHTML = `<tr><td class="empty" colspan="9">No exhibitions match these filters.</td></tr>`;
+        return;
+      }
+      $('tableBody').innerHTML = visible.map((row) => `
+        <tr>
+          <td><span class="pill">${escapeHtml(row.industry)}</span></td>
+          <td><strong>${escapeHtml(row.event_name)}</strong><div class="micro">${escapeHtml(row.source_type)}</div></td>
+          <td>${escapeHtml(row.dates)}</td>
+          <td>${escapeHtml(row.city)}, ${escapeHtml(row.country)}<div class="micro">${escapeHtml(row.region)}</div></td>
+          <td>${escapeHtml(row.venue)}</td>
+          <td>${escapeHtml(row.duration_days)} days</td>
+          <td><span class="pill ${row.confidence.toLowerCase()}">${escapeHtml(row.confidence)}</span><div class="micro">${escapeHtml(row.directory_quality)}</div></td>
+          <td>
+            <a href="${escapeHtml(row.official_website)}" target="_blank" rel="noopener">Website</a><br>
+            <a href="${escapeHtml(row.participants_url)}" target="_blank" rel="noopener">Participants</a><br>
+            <a href="${escapeHtml(row.discovery_source_url)}" target="_blank" rel="noopener">Source</a>
+          </td>
+          <td>${escapeHtml(row.relevance_notes)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCandidates() {
+      $('candidateList').innerHTML = DATA.candidates.map((row) => `
+        <div class="candidate">
+          <strong>${escapeHtml(row.event_name)}</strong>
+          <div class="micro">${escapeHtml(row.industry)} · ${escapeHtml(row.candidate_dates)} · ${escapeHtml(row.candidate_region)}</div>
+          <p>${escapeHtml(row.notes)}</p>
+          <div><span class="pill medium">${escapeHtml(row.candidate_status)}</span></div>
+        </div>
+      `).join('');
+    }
+
+    function exportCsv() {
+      const visible = filteredRows();
+      const headers = Object.keys(rows[0]);
+      const lines = [headers.join(',')].concat(visible.map((row) => headers.map((h) => {
+        const value = String(row[h] ?? '').replace(/"/g, '""');
+        return `"${value}"`;
+      }).join(',')));
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'turbo-mango-filtered-exhibitions.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    fillSelect('industryFilter', unique('industry'));
+    fillSelect('regionFilter', unique('region'));
+    fillSelect('confidenceFilter', unique('confidence'));
+    renderBars('industryBars', DATA.summary.industries);
+    renderBars('countryBars', DATA.summary.countries, 10);
+    renderBars('confidenceBars', DATA.summary.confidence);
+    renderRegionDonut();
+    renderCandidates();
+    renderTable();
+
+    ['industryFilter', 'regionFilter', 'confidenceFilter', 'searchFilter'].forEach((id) => {
+      $(id).addEventListener('input', renderTable);
+    });
+    $('resetBtn').addEventListener('click', () => {
+      ['industryFilter', 'regionFilter', 'confidenceFilter'].forEach((id) => $(id).value = '');
+      $('searchFilter').value = '';
+      renderTable();
+    });
+    $('exportBtn').addEventListener('click', exportCsv);
+  </script>
+</body>
+</html>
