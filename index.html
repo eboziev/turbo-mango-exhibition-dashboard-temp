@@ -77,6 +77,37 @@
       margin: 6px 0 18px;
     }
 
+    .quick-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+
+    .quick-nav a {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #b8c6d5;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .quick-nav a.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    section[id] {
+      scroll-margin-top: 18px;
+    }
+
     .kpi, .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -422,6 +453,12 @@
       <div class="kpi"><div class="label">URL check</div><div class="value">56/56</div><div class="hint">Participant links open</div></div>
     </section>
 
+    <nav class="quick-nav" aria-label="Dashboard sections">
+      <a class="primary" href="#intersolar-participants">Intersolar participants: 1147</a>
+      <a href="#verified-exhibitions">Verified exhibitions</a>
+      <a href="#candidate-pipeline">Candidate pipeline</a>
+    </nav>
+
     <section class="grid">
       <div class="panel">
         <h2>Coverage by industry</h2>
@@ -462,7 +499,35 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section id="intersolar-participants" class="panel" style="margin-top:14px">
+      <h2>Intersolar Europe participants</h2>
+      <div class="controls">
+        <label>Country<select id="participantCountryFilter"><option value="">All countries</option></select></label>
+        <label>Hall<select id="participantHallFilter"><option value="">All halls</option></select></label>
+        <label>Search<input id="participantSearchFilter" type="search" placeholder="Company, booth, summary"></label>
+        <div class="actions">
+          <button id="participantResetBtn" type="button">Reset</button>
+          <button id="participantExportBtn" class="primary" type="button">Export CSV</button>
+        </div>
+      </div>
+      <p id="participantTableCount" class="panel-note"></p>
+      <div class="table-wrap" tabindex="0" aria-label="Scrollable Intersolar participant table">
+        <table class="participants-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Country</th>
+              <th>Hall / Booth</th>
+              <th>Summary</th>
+              <th>Profile</th>
+            </tr>
+          </thead>
+          <tbody id="participantTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="verified-exhibitions" class="panel" style="margin-top:14px">
       <h2>Verified exhibitions</h2>
       <div class="controls">
         <label>Industry<select id="industryFilter"><option value="">All industries</option></select></label>
@@ -495,35 +560,7 @@
       </div>
     </section>
 
-    <section class="panel" style="margin-top:14px">
-      <h2>Intersolar Europe participants</h2>
-      <div class="controls">
-        <label>Country<select id="participantCountryFilter"><option value="">All countries</option></select></label>
-        <label>Hall<select id="participantHallFilter"><option value="">All halls</option></select></label>
-        <label>Search<input id="participantSearchFilter" type="search" placeholder="Company, booth, summary"></label>
-        <div class="actions">
-          <button id="participantResetBtn" type="button">Reset</button>
-          <button id="participantExportBtn" class="primary" type="button">Export CSV</button>
-        </div>
-      </div>
-      <p id="participantTableCount" class="panel-note"></p>
-      <div class="table-wrap" tabindex="0" aria-label="Scrollable Intersolar participant table">
-        <table class="participants-table">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Country</th>
-              <th>Hall / Booth</th>
-              <th>Summary</th>
-              <th>Profile</th>
-            </tr>
-          </thead>
-          <tbody id="participantTableBody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="panel" style="margin-top:14px">
+    <section id="candidate-pipeline" class="panel" style="margin-top:14px">
       <h2>Candidate pipeline</h2>
       <p class="panel-note">These events are promising but were not put into Verified because the current public exhibitor list is missing, pending, or not official enough.</p>
       <div id="candidateList" class="candidate-list"></div>
