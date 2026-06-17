@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apollo Sales Marketing Export Test</title>
+  <style>
+    :root {
+      --ink:#17202a; --muted:#5d6875; --line:#d9e1ea; --page:#eef2f6; --panel:#fff;
+      --blue:#1b6ca8; --teal:#16837a; --green:#4b8b3b; --gold:#bb6c16; --red:#b4483a;
+      --shadow:0 10px 24px rgba(23,32,42,.08);
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--ink);
+      background:var(--page);
+    }
+    a { color:var(--blue); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .shell { width:min(1480px, calc(100vw - 32px)); margin:0 auto; padding:24px 0 44px; }
+    header { display:grid; grid-template-columns:1fr auto; gap:18px; align-items:end; padding:18px 0 20px; }
+    h1 { margin:0; font-size:clamp(30px, 5vw, 58px); line-height:1.02; letter-spacing:0; }
+    .subtitle { margin:10px 0 0; max-width:940px; color:var(--muted); font-size:16px; line-height:1.55; }
+    .stamp { justify-self:end; display:grid; gap:8px; text-align:right; color:var(--muted); font-size:13px; }
+    .stamp a {
+      display:inline-flex; justify-self:end; min-height:36px; align-items:center;
+      border:1px solid #b8c6d5; border-radius:8px; padding:8px 12px;
+      background:#fff; color:var(--ink); font-weight:720;
+    }
+    .kpis { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; margin:6px 0 18px; }
+    .kpi, .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); }
+    .kpi { min-height:104px; padding:16px; display:grid; align-content:space-between; }
+    .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .value { font-size:34px; font-weight:760; line-height:1; }
+    .hint { color:var(--muted); font-size:13px; line-height:1.35; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .panel { padding:16px; overflow:hidden; }
+    h2 { margin:0 0 12px; font-size:18px; letter-spacing:0; }
+    .panel-note { color:var(--muted); font-size:13px; line-height:1.45; margin:-4px 0 14px; }
+    .bars { display:grid; gap:12px; }
+    .bar-row { display:grid; grid-template-columns:minmax(170px,310px) 1fr 48px; gap:10px; align-items:center; font-size:14px; }
+    .bar-track { height:12px; background:#e8eef4; border-radius:999px; overflow:hidden; }
+    .bar-fill { height:100%; background:linear-gradient(90deg, var(--teal), var(--blue)); border-radius:999px; }
+    .bar-fill.gold { background:linear-gradient(90deg, var(--gold), #d89b37); }
+    .bar-value { text-align:right; font-variant-numeric:tabular-nums; color:var(--muted); }
+    .note-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:14px; margin-bottom:14px; }
+    .callout {
+      border-left:4px solid var(--gold);
+      background:#fff8ec;
+      box-shadow:none;
+    }
+    .callout strong { color:#7b460d; }
+    .controls { display:grid; grid-template-columns:repeat(4, minmax(160px,1fr)) auto; gap:10px; align-items:end; margin-bottom:12px; }
+    label { display:grid; gap:6px; color:var(--muted); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+    select, input { width:100%; min-height:38px; border:1px solid #b8c6d5; border-radius:7px; padding:8px 10px; color:var(--ink); background:#fff; font:inherit; }
+    .actions { display:flex; gap:8px; align-items:center; }
+    button { min-height:38px; border:1px solid #b8c6d5; border-radius:7px; background:#fff; color:var(--ink); padding:8px 12px; font-weight:720; cursor:pointer; }
+    button.primary { border-color:var(--blue); background:var(--blue); color:#fff; }
+    .pill { display:inline-flex; align-items:center; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:760; background:#e8eef4; color:#25313d; white-space:nowrap; }
+    .pill.sales { background:#e5f1fb; color:#174e7f; }
+    .pill.marketing { background:#e8f3ec; color:#285f37; }
+    .pill.export { background:#fff1db; color:#7b460d; }
+    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:8px; }
+    table { width:100%; min-width:1160px; border-collapse:collapse; font-size:13px; background:#fff; }
+    th, td { padding:10px 12px; border-bottom:1px solid #edf1f5; text-align:left; vertical-align:top; }
+    th { position:sticky; top:0; background:#f7f9fb; z-index:1; color:#344250; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    tr:hover td { background:#fbfdff; }
+    .person { font-weight:760; }
+    .micro { color:var(--muted); font-size:12px; line-height:1.35; margin-top:3px; }
+    .title-cell { max-width:340px; line-height:1.4; }
+    .notes-cell { max-width:360px; color:#53606d; line-height:1.4; }
+    .empty { color:var(--muted); text-align:center; padding:22px; }
+    @media (max-width:900px) {
+      header, .grid, .note-grid { grid-template-columns:1fr; }
+      .stamp { justify-self:start; text-align:left; }
+      .stamp a { justify-self:start; }
+      .kpis { grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .controls { grid-template-columns:1fr; }
+      .actions { justify-content:flex-start; }
+    }
+    @media (max-width:560px) {
+      .shell { width:min(100vw - 20px, 1480px); padding-top:12px; }
+      .kpis { grid-template-columns:1fr; }
+      .bar-row { grid-template-columns:1fr 80px 42px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>Apollo Sales / Marketing / Export Test</h1>
+        <p class="subtitle">Search-only Apollo sample for Intersolar Europe equipment companies. The view highlights sales, marketing and export-related roles found for the six-company test set.</p>
+      </div>
+      <div class="stamp">
+        <a href="intersolar-equipment-manufacturers.html">Back to equipment shortlist</a>
+        <a href="index.html">Back to main dashboard</a>
+        <span>Apollo People Search, no enrichment</span>
+        <span>Last checked: 2026-06-16</span>
+      </div>
+    </header>
+
+    <section class="kpis">
+      <div class="kpi"><div class="label">Apollo rows</div><div class="value">31</div><div class="hint">Sales / marketing / export sample</div></div>
+      <div class="kpi"><div class="label">Companies</div><div class="value">4</div><div class="hint">Matched in this test result</div></div>
+      <div class="kpi"><div class="label">Email flag</div><div class="value">26</div><div class="hint">Email exists in Apollo search</div></div>
+      <div class="kpi"><div class="label">Export signal</div><div class="value">1</div><div class="hint">Export-related title match</div></div>
+    </section>
+
+    <section class="note-grid">
+      <div class="panel callout">
+        <h2>Export signal caveat</h2>
+        <p class="panel-note"><strong>Only one export-related row appeared in the six-company test:</strong> Head of Export Control & Customs at SMA Solar. This looks like customs/compliance, not commercial export sales.</p>
+      </div>
+      <div class="panel">
+        <h2>Contact visibility</h2>
+        <p class="panel-note">Apollo search returns availability flags and often masked last names. Full names, emails and phone details require enrichment credits.</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Roles found</h2>
+        <p class="panel-note">Rows are grouped into simple sales, marketing, export and business-development buckets.</p>
+        <div id="roleBars" class="bars"></div>
+      </div>
+      <div class="panel">
+        <h2>Rows by Apollo company</h2>
+        <p class="panel-note">SMA dominates this small sample because it has much broader Apollo coverage.</p>
+        <div id="companyBars" class="bars"></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Email availability</h2>
+        <div id="emailBars" class="bars"></div>
+      </div>
+      <div class="panel">
+        <h2>Direct phone availability</h2>
+        <div id="phoneBars" class="bars"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Search results table</h2>
+      <div class="controls">
+        <label>Company<select id="companyFilter"><option value="">All companies</option></select></label>
+        <label>Role<select id="roleFilter"><option value="">All roles</option></select></label>
+        <label>Email<select id="emailFilter"><option value="">All email flags</option><option value="true">Has email</option><option value="false">No email flag</option></select></label>
+        <label>Search<input id="searchFilter" type="search" placeholder="Name, title, notes"></label>
+        <div class="actions">
+          <button id="resetBtn" type="button">Reset</button>
+          <button id="exportBtn" class="primary" type="button">Export CSV</button>
+        </div>
+      </div>
+      <p id="tableCount" class="panel-note"></p>
+      <div class="table-wrap" tabindex="0" aria-label="Scrollable Apollo sales marketing export table">
+        <table>
+          <thead>
+            <tr>
+              <th>Person</th>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Title</th>
+              <th>Email flag</th>
+              <th>Direct phone flag</th>
+              <th>Last refreshed</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DATA = {"rows": [{"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "5d58fa60f65125be6c50ae77", "first_name": "Lena", "last_name_obfuscated": "Ho***n", "title": "Head of Export Control & Customs", "role_bucket": "Export / customs", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-24T09:03:03.000+00:00", "notes": "Export match but appears customs/compliance rather than commercial export sales"}, {"source_event": "Intersolar Europe", "source_company_domain": "ampt.com", "apollo_org_name": "Ampt", "apollo_person_id": "5ee2456b01b14100013fc289", "first_name": "Carmen", "last_name_obfuscated": "Au***e", "title": "Sales Director", "role_bucket": "Sales", "has_email": "false", "has_direct_phone": "Maybe: please request direct dial via people/bulk_match", "last_refreshed_at": "2026-05-31T11:16:22.000+00:00", "notes": "Apollo search result; no email flag"}, {"source_event": "Intersolar Europe", "source_company_domain": "ampt.com", "apollo_org_name": "Ampt", "apollo_person_id": "66f8ab4c1cc13a0001f4184f", "first_name": "Charlie", "last_name_obfuscated": "Cox", "title": "U.S. Sales Director", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-09T20:50:20.613+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "607324aa556ab30001573d04", "first_name": "Eva", "last_name_obfuscated": "Ro***l", "title": "Head of Marketing Large Scale CEU", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-08T05:59:31.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "637da040039e480001f637cf", "first_name": "Judit", "last_name_obfuscated": "Be***o", "title": "Marketing Director Home and Business Solutions - South and Western Europe", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-31T07:24:24.194+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "54a4d5b474686938ac458567", "first_name": "Friederike", "last_name_obfuscated": "Ni***n", "title": "Head of Global Digital Marketing", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-17T12:51:56.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "ampt.com", "apollo_org_name": "Ampt", "apollo_person_id": "54a229117468693825373d12", "first_name": "Mark", "last_name_obfuscated": "Ka***i", "title": "Vice President Strategic Marketing", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-05T20:54:30.956+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "65276a69e33825000144a19b", "first_name": "Aaron", "last_name_obfuscated": "Ge***n", "title": "Vice President Global New Business & Marketing", "role_bucket": "Marketing / business development", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-10T17:40:40.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "americangroundscrew.com", "apollo_org_name": "American Ground Screw Mfg & Supply", "apollo_person_id": "66f7dceef3aaa20001094520", "first_name": "Tom", "last_name_obfuscated": "Mc***n", "title": "Director of Sales, North America", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-27T04:10:11.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "ampt.com", "apollo_org_name": "Ampt", "apollo_person_id": "66fa780c38c6fc0001faf52a", "first_name": "Mary", "last_name_obfuscated": "Ad***m", "title": "Vice President of Global Sales", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-23T14:08:10.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "60897ec1a122ce00015fed02", "first_name": "Lea", "last_name_obfuscated": "Br***k", "title": "Head of Global Digital Marketing HBS", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-23T06:41:57.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "57ddcec1a6da987afd9419c9", "first_name": "Tobias", "last_name_obfuscated": "Be***m", "title": "Head of Large Scale Sales Central Europe", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-24T09:02:58.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "57dd4b82a6da987b2c9fb49f", "first_name": "Michael", "last_name_obfuscated": "Eb***l", "title": "Head of HBS Project Sales, Sales Central Europe", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-12T16:23:17.774+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "60dc7bde53123f000124920e", "first_name": "Sebastian", "last_name_obfuscated": "Se***l", "title": "Head of Large Scale Sales CEU", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-16T09:45:08.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "54a9c90974686933997f9e18", "first_name": "Patrik", "last_name_obfuscated": "Le***d", "title": "Global Head of Service Sales and Repowering", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-01T04:12:29.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "6170159a2eb4510001ade89c", "first_name": "Stefan", "last_name_obfuscated": "La***g", "title": "Head of Regional Sales Central Europe", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2025-10-21T14:27:37.665+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "54eba378746869431144a103", "first_name": "Markus", "last_name_obfuscated": "Di***l", "title": "Head of Distribution Sales Central Europe", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-10T11:25:49.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "6102a32982eb06000179c1f7", "first_name": "Steven", "last_name_obfuscated": "Sc***r", "title": "Director of Marketing - Asia Pacific", "role_bucket": "Marketing", "has_email": "false", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-15T18:38:23.000+00:00", "notes": "Apollo search result; no email flag"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "54a246767468693cdd7b131c", "first_name": "Carsten", "last_name_obfuscated": "We***t", "title": "Head of Large Scale Storage Sales CEU", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-14T16:08:23.036+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "57de73f6a6da987b6db444e2", "first_name": "Liesbeth", "last_name_obfuscated": "He***s", "title": "Head of Global Strategic Marketing, Home and Business Segment", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-04T09:14:15.552+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "ampt.com", "apollo_org_name": "Ampt", "apollo_person_id": "54a3eca37468693b8cdac71d", "first_name": "Paul", "last_name_obfuscated": "Ni***e", "title": "Senior Director of Sales | EMEA & India", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-13T04:38:47.432+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "60e566f0d5b4f20001571e54", "first_name": "Joshua", "last_name_obfuscated": "Bi***m", "title": "Senior Vice President - Global Sales and Markets", "role_bucket": "Sales", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-05T08:01:04.814+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "54abaab17468692a6bc99904", "first_name": "Jens", "last_name_obfuscated": "Kr***g", "title": "Director Sales EU &MENA", "role_bucket": "Sales", "has_email": "false", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-10T16:19:41.000+00:00", "notes": "Apollo search result; no email flag"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "5d4eb82f80f93e89e4667465", "first_name": "Carolyn", "last_name_obfuscated": "Sc***r", "title": "Marketing Manager", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-01T06:39:51.440+00:00", "notes": "Apollo search returned manager due include_similar_titles"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "61275c783960f70001d89c5e", "first_name": "Swetlana", "last_name_obfuscated": "Le***t", "title": "Marketing Data Manager", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-06-12T10:50:25.000+00:00", "notes": "Apollo search returned manager due include_similar_titles"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "61693fe54de2f800019f0bf2", "first_name": "Nicole", "last_name_obfuscated": "Mi***y", "title": "Project & Communication Manager Marketing Central Europe", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-07T14:52:09.000+00:00", "notes": "Apollo search returned manager due include_similar_titles"}, {"source_event": "Intersolar Europe", "source_company_domain": "alumerogroup.eu", "apollo_org_name": "ALUMERO Systematic Solutions GmbH", "apollo_person_id": "5ac04ac7a6da98cf73d66b42", "first_name": "Anja", "last_name_obfuscated": "Ko***r", "title": "Marketing Manager", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-13T22:41:24.000+00:00", "notes": "Apollo search returned manager due include_similar_titles"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "644f5a6763f33400010756ff", "first_name": "Dania", "last_name_obfuscated": "Mu***m", "title": "Marketing and Communications Manager Middle East & Africa", "role_bucket": "Marketing", "has_email": "false", "has_direct_phone": "Yes", "last_refreshed_at": "2026-05-22T21:17:27.000+00:00", "notes": "Apollo search returned manager due include_similar_titles; no email flag"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "67e26bc59d610c00013eae7e", "first_name": "Caroline", "last_name_obfuscated": "Br***n", "title": "Marketing Manager Home & Business Solutions Benelux and UK", "role_bucket": "Marketing", "has_email": "false", "has_direct_phone": "Yes", "last_refreshed_at": "2026-04-25T23:51:01.000+00:00", "notes": "Apollo search returned manager due include_similar_titles; no email flag"}, {"source_event": "Intersolar Europe", "source_company_domain": "alumerogroup.eu", "apollo_org_name": "ALUMERO Systematic Solutions GmbH", "apollo_person_id": "61fbb8efb4f2050001260299", "first_name": "Julia", "last_name_obfuscated": "Cz***k", "title": "Marketing", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Maybe: please request direct dial via people/bulk_match", "last_refreshed_at": "2026-04-25T12:59:44.000+00:00", "notes": "Apollo search result"}, {"source_event": "Intersolar Europe", "source_company_domain": "sma.de", "apollo_org_name": "SMA Solar", "apollo_person_id": "64b246e099534500017396fc", "first_name": "Bert", "last_name_obfuscated": "Sc***t", "title": "Marketing Manager", "role_bucket": "Marketing", "has_email": "true", "has_direct_phone": "Maybe: please request direct dial via people/bulk_match", "last_refreshed_at": "2026-04-26T20:30:33.497+00:00", "notes": "Apollo search returned manager due include_similar_titles"}], "summary": {"total": 31, "roles": {"Marketing": 15, "Sales": 14, "Export / customs": 1, "Marketing / business development": 1}, "companies": {"SMA Solar": 23, "Ampt": 5, "ALUMERO Systematic Solutions GmbH": 2, "American Ground Screw Mfg & Supply": 1}, "email": {"Email flag": 26, "No email flag": 5}, "phone": {"Direct phone flag": 28, "Maybe direct phone": 3}, "exportRows": 1, "companiesCovered": 4, "lastChecked": "2026-06-16"}};
+    const rows = DATA.rows;
+    const $ = (id) => document.getElementById(id);
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+    }
+    function unique(field) {
+      return [...new Set(rows.map((row) => row[field]).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric:true }));
+    }
+    function fillSelect(id, values) {
+      const select = $(id);
+      values.forEach((value) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+    }
+    function renderBars(id, obj, gold = false) {
+      const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+      const max = Math.max(...entries.map(([, value]) => value), 1);
+      $(id).innerHTML = entries.map(([label, value]) => `
+        <div class="bar-row">
+          <div>${escapeHtml(label)}</div>
+          <div class="bar-track" aria-hidden="true"><div class="bar-fill ${gold ? 'gold' : ''}" style="width:${(value / max) * 100}%"></div></div>
+          <div class="bar-value">${value}</div>
+        </div>
+      `).join('');
+    }
+    function roleClass(role) {
+      const text = role.toLowerCase();
+      if (text.includes('export')) return 'export';
+      if (text.includes('sales')) return 'sales';
+      if (text.includes('marketing')) return 'marketing';
+      return '';
+    }
+    function filteredRows() {
+      const company = $('companyFilter').value;
+      const role = $('roleFilter').value;
+      const email = $('emailFilter').value;
+      const q = $('searchFilter').value.trim().toLowerCase();
+      return rows.filter((row) => {
+        if (company && row.apollo_org_name !== company) return false;
+        if (role && row.role_bucket !== role) return false;
+        if (email && row.has_email !== email) return false;
+        if (q) {
+          const haystack = [row.first_name, row.last_name_obfuscated, row.title, row.notes, row.apollo_org_name].join(' ').toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+    function renderTable() {
+      const visible = filteredRows();
+      $('tableCount').textContent = `${visible.length} of ${rows.length} Apollo search rows shown`;
+      if (!visible.length) {
+        $('tableBody').innerHTML = `<tr><td class="empty" colspan="8">No Apollo rows match these filters.</td></tr>`;
+        return;
+      }
+      $('tableBody').innerHTML = visible.map((row) => `
+        <tr>
+          <td><div class="person">${escapeHtml(row.first_name)} ${escapeHtml(row.last_name_obfuscated)}</div><div class="micro">${escapeHtml(row.apollo_person_id)}</div></td>
+          <td>${escapeHtml(row.apollo_org_name)}<div class="micro">${escapeHtml(row.source_company_domain)}</div></td>
+          <td><span class="pill ${roleClass(row.role_bucket)}">${escapeHtml(row.role_bucket)}</span></td>
+          <td class="title-cell">${escapeHtml(row.title)}</td>
+          <td>${row.has_email === 'true' ? 'Yes' : 'No'}</td>
+          <td>${escapeHtml(row.has_direct_phone)}</td>
+          <td>${escapeHtml(row.last_refreshed_at)}</td>
+          <td class="notes-cell">${escapeHtml(row.notes)}</td>
+        </tr>
+      `).join('');
+    }
+    function exportCsv() {
+      const visible = filteredRows();
+      const headers = Object.keys(rows[0]);
+      const lines = [headers.join(',')].concat(visible.map((row) => headers.map((h) => {
+        const value = String(row[h] ?? '').replace(/"/g, '""');
+        return `"${value}"`;
+      }).join(',')));
+      const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'apollo-intersolar-sales-marketing-export-filtered.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+    fillSelect('companyFilter', unique('apollo_org_name'));
+    fillSelect('roleFilter', unique('role_bucket'));
+    renderBars('roleBars', DATA.summary.roles);
+    renderBars('companyBars', DATA.summary.companies);
+    renderBars('emailBars', DATA.summary.email, true);
+    renderBars('phoneBars', DATA.summary.phone, true);
+    renderTable();
+    ['companyFilter', 'roleFilter', 'emailFilter', 'searchFilter'].forEach((id) => $(id).addEventListener('input', renderTable));
+    $('resetBtn').addEventListener('click', () => {
+      ['companyFilter', 'roleFilter', 'emailFilter'].forEach((id) => $(id).value = '');
+      $('searchFilter').value = '';
+      renderTable();
+    });
+    $('exportBtn').addEventListener('click', exportCsv);
+  </script>
+</body>
+</html>
